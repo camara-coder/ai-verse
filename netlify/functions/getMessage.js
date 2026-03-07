@@ -13,11 +13,16 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: "Invalid JSON" };
   }
 
-  const { dayName, date, timeOfDay } = context;
+  const { dayName, date, timeOfDay, language } = context;
 
   if (!dayName || !date || !timeOfDay) {
     return { statusCode: 400, body: "Missing required fields: dayName, date, timeOfDay" };
   }
+
+  const isSpanish = language === "es";
+  const languageInstruction = isSpanish
+    ? "Respond entirely in Latin American Spanish. Use a Bible verse from the Reina-Valera translation."
+    : "";
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -28,7 +33,7 @@ exports.handler = async function (event) {
       messages: [
         {
           role: "user",
-          content: `You are a gentle, wise pastor delivering a short daily devotional.
+          content: `You are a gentle, wise pastor delivering a short daily devotional.${isSpanish ? " " + languageInstruction : ""}
 
 Today is ${dayName}, ${date}. It is ${timeOfDay}.
 

@@ -169,6 +169,23 @@
       color: rgba(255,255,255,0.2);
     }
 
+    /* Language toggle */
+    #lang-toggle {
+      display: inline-block;
+      margin-top: 1rem;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.25);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.3s ease;
+    }
+    #lang-toggle:hover { color: rgba(255,255,255,0.6); }
+
     /* Error state */
     #error { text-align: center; }
     .error-text {
@@ -211,6 +228,7 @@
       <div class="divider"></div>
       <p id="message"></p>
       <p id="datetime-label"></p>
+      <button id="lang-toggle">ver en español</button>
     </div>
 
     <!-- Error state -->
@@ -308,6 +326,9 @@
         .replace(/'/g, "&#039;");
     }
 
+    // ---- Language state ----
+    let currentLang = "en";
+
     // ---- Fetch message from serverless function ----
     async function fetchMessage() {
       showLoading();
@@ -318,7 +339,7 @@
         const res = await fetch("/api/getMessage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(context)
+          body: JSON.stringify({ ...context, language: currentLang })
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -343,6 +364,11 @@
 
     // ---- Event listeners ----
     document.getElementById("retry-btn").addEventListener("click", fetchMessage);
+    document.getElementById("lang-toggle").addEventListener("click", function () {
+      currentLang = currentLang === "en" ? "es" : "en";
+      this.textContent = currentLang === "es" ? "view in english" : "ver en español";
+      fetchMessage();
+    });
 
     // ---- Init ----
     fetchMessage();
