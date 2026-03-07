@@ -169,27 +169,6 @@
       color: rgba(255,255,255,0.2);
     }
 
-    /* Refresh button */
-    #refresh-btn {
-      margin-top: 1.2rem;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.4);
-      border-radius: 999px;
-      padding: 9px 22px;
-      font-size: 0.78rem;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #refresh-btn:hover {
-      color: rgba(255,255,255,0.9);
-      border-color: rgba(212,175,55,0.5);
-      box-shadow: 0 0 14px rgba(212,175,55,0.2);
-    }
-
     /* Error state */
     #error { text-align: center; }
     .error-text {
@@ -232,7 +211,6 @@
       <div class="divider"></div>
       <p id="message"></p>
       <p id="datetime-label"></p>
-      <button id="refresh-btn" aria-label="Load new message">&#8635; New Message</button>
     </div>
 
     <!-- Error state -->
@@ -364,7 +342,6 @@
     }
 
     // ---- Event listeners ----
-    document.getElementById("refresh-btn").addEventListener("click", fetchMessage);
     document.getElementById("retry-btn").addEventListener("click", fetchMessage);
 
     // ---- Init ----
