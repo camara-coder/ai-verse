@@ -326,8 +326,10 @@
         .replace(/'/g, "&#039;");
     }
 
-    // ---- Language state ----
-    let currentLang = "en";
+    // ---- Language state (persisted) ----
+    let currentLang = localStorage.getItem("lang") || "en";
+    const langToggle = document.getElementById("lang-toggle");
+    if (currentLang === "es") langToggle.textContent = "view in english";
 
     // ---- Fetch message from serverless function ----
     async function fetchMessage() {
@@ -364,8 +366,9 @@
 
     // ---- Event listeners ----
     document.getElementById("retry-btn").addEventListener("click", fetchMessage);
-    document.getElementById("lang-toggle").addEventListener("click", function () {
+    langToggle.addEventListener("click", function () {
       currentLang = currentLang === "en" ? "es" : "en";
+      localStorage.setItem("lang", currentLang);
       this.textContent = currentLang === "es" ? "view in english" : "ver en español";
       fetchMessage();
     });
