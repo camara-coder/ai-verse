@@ -169,26 +169,22 @@
       color: rgba(255,255,255,0.2);
     }
 
-    /* Refresh button */
-    #refresh-btn {
-      margin-top: 1.2rem;
+    /* Language toggle */
+    #lang-toggle {
+      display: inline-block;
+      margin-top: 1rem;
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.4);
-      border-radius: 999px;
-      padding: 9px 22px;
-      font-size: 0.78rem;
+      border: none;
+      color: rgba(255,255,255,0.25);
       font-family: 'Inter', sans-serif;
-      letter-spacing: 0.05em;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
       cursor: pointer;
-      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      padding: 0;
+      transition: color 0.3s ease;
     }
-
-    #refresh-btn:hover {
-      color: rgba(255,255,255,0.9);
-      border-color: rgba(212,175,55,0.5);
-      box-shadow: 0 0 14px rgba(212,175,55,0.2);
-    }
+    #lang-toggle:hover { color: rgba(255,255,255,0.6); }
 
     /* Error state */
     #error { text-align: center; }
@@ -232,7 +228,7 @@
       <div class="divider"></div>
       <p id="message"></p>
       <p id="datetime-label"></p>
-      <button id="refresh-btn" aria-label="Load new message">&#8635; New Message</button>
+      <button id="lang-toggle">ver en español</button>
     </div>
 
     <!-- Error state -->
@@ -330,6 +326,9 @@
         .replace(/'/g, "&#039;");
     }
 
+    // ---- Language state ----
+    let currentLang = "en";
+
     // ---- Fetch message from serverless function ----
     async function fetchMessage() {
       showLoading();
@@ -340,7 +339,7 @@
         const res = await fetch("/api/getMessage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(context)
+          body: JSON.stringify({ ...context, language: currentLang })
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -364,8 +363,12 @@
     }
 
     // ---- Event listeners ----
-    document.getElementById("refresh-btn").addEventListener("click", fetchMessage);
     document.getElementById("retry-btn").addEventListener("click", fetchMessage);
+    document.getElementById("lang-toggle").addEventListener("click", function () {
+      currentLang = currentLang === "en" ? "es" : "en";
+      this.textContent = currentLang === "es" ? "view in english" : "ver en español";
+      fetchMessage();
+    });
 
     // ---- Init ----
     fetchMessage();
