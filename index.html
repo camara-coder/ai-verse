@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Word</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    /* ---- Reset & Base ---- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ---- Animated Background ---- */
+    /* JS sets data-time="morning|afternoon|evening|night" on <body> */
+
+    #bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-size: 400% 400%;
+      animation: gradientShift 14s ease infinite;
+    }
+
+    body[data-time="morning"]   #bg { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #1a1a2e); }
+    body[data-time="afternoon"] #bg { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29); }
+    body[data-time="evening"]   #bg { background: linear-gradient(135deg, #1a1a2e, #2d1b69, #11998e, #1a1a2e); }
+    body[data-time="night"]     #bg { background: linear-gradient(135deg, #0a0a0a, #1a1a2e, #0d0d0d, #0a0a0a); }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ---- Subtle floating particles (pure CSS) ---- */
+    #bg::before, #bg::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      animation: float 18s ease-in-out infinite;
+    }
+    #bg::before { width: 300px; height: 300px; top: 10%; left: 5%; animation-delay: 0s; }
+    #bg::after  { width: 200px; height: 200px; bottom: 15%; right: 8%; animation-delay: -9s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%       { transform: translateY(-30px) scale(1.05); }
+    }
+
+    /* ---- Card ---- */
+    #card {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      width: 100%;
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      #card { padding: 32px 24px; }
+    }
+
+    /* ---- Loading Cross ---- */
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 80px;
+    }
+
+    .cross {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .cross-h, .cross-v {
+      position: absolute;
+      background: rgba(255,255,255,0.5);
+      border-radius: 2px;
+    }
+    .cross-h { width: 100%; height: 6px; top: 50%; transform: translateY(-50%); }
+    .cross-v { width: 6px; height: 100%; left: 50%; transform: translateX(-50%); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.95); }
+      50%       { opacity: 0.85; transform: scale(1.05); }
+    }
+
+    /* ---- Content ---- */
+    #content {
+      opacity: 0;
+    }
+
+    #content.animate {
+      animation: fadeUp 1.2s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Verse reference line */
+    #verse-ref {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.04em;
+      font-style: italic;
+      margin-bottom: 0;
+      line-height: 1.6;
+    }
+
+    /* Book + Chapter:Verse label */
+    #verse-ref .ref-label {
+      display: block;
+      font-style: normal;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(212, 175, 55, 0.6);
+      margin-bottom: 0.4rem;
+    }
+
+    /* Gold divider */
+    .divider {
+      width: 36px;
+      height: 1px;
+      background: rgba(212, 175, 55, 0.45);
+      margin: 1.4rem auto;
+    }
+
+    /* Main devotional message */
+    #message {
+      font-family: 'Lora', serif;
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.7;
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Date/time label */
+    #datetime-label {
+      margin-top: 2.2rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* Refresh button */
+    #refresh-btn {
+      margin-top: 1.2rem;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.4);
+      border-radius: 999px;
+      padding: 9px 22px;
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #refresh-btn:hover {
+      color: rgba(255,255,255,0.9);
+      border-color: rgba(212,175,55,0.5);
+      box-shadow: 0 0 14px rgba(212,175,55,0.2);
+    }
+
+    /* Error state */
+    #error { text-align: center; }
+    .error-text {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+    }
+    #retry-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.5);
+      border-radius: 999px;
+      padding: 9px 22px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #retry-btn:hover { color: white; border-color: rgba(255,255,255,0.5); }
+
+    /* Utility */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+
+  <main id="card">
+
+    <!-- Loading state -->
+    <div id="loading">
+      <div class="cross">
+        <div class="cross-h"></div>
+        <div class="cross-v"></div>
+      </div>
+    </div>
+
+    <!-- Message content -->
+    <div id="content" class="hidden">
+      <p id="verse-ref"></p>
+      <div class="divider"></div>
+      <p id="message"></p>
+      <p id="datetime-label"></p>
+      <button id="refresh-btn" aria-label="Load new message">&#8635; New Message</button>
+    </div>
+
+    <!-- Error state -->
+    <div id="error" class="hidden">
+      <p class="error-text">Could not load today&#8217;s message.</p>
+      <button id="retry-btn">Try Again</button>
+    </div>
+
+  </main>
+
+  <script>
+    // ---- Time context ----
+    function getTimeContext() {
+      const now = new Date();
+      const hour = now.getHours();
+      const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      const months = ["January","February","March","April","May","June",
+                      "July","August","September","October","November","December"];
+
+      let timeOfDay;
+      if      (hour >= 5  && hour < 12) timeOfDay = "morning";
+      else if (hour >= 12 && hour < 17) timeOfDay = "afternoon";
+      else if (hour >= 17 && hour < 21) timeOfDay = "evening";
+      else                               timeOfDay = "night";
+
+      return {
+        dayName: days[now.getDay()],
+        date: `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`,
+        timeOfDay
+      };
+    }
+
+    // ---- Format date label for display ----
+    function formatDisplayLabel(context) {
+      const capTime = context.timeOfDay.charAt(0).toUpperCase() + context.timeOfDay.slice(1);
+      return `${context.dayName} ${capTime} · ${context.date}`;
+    }
+
+    // ---- Set background theme based on time ----
+    function setTimeTheme(timeOfDay) {
+      document.body.setAttribute("data-time", timeOfDay);
+    }
+
+    // ---- Parse verse into reference and quote ----
+    function parseVerse(verseText) {
+      // Expected format: "Book Chapter:Verse — "exact verse text""
+      const dashMatch = verseText.match(/^(.+?)\s*[—–-]\s*"?(.+?)"?$/);
+      if (dashMatch) {
+        return { ref: dashMatch[1].trim(), quote: dashMatch[2].trim() };
+      }
+      return { ref: verseText, quote: "" };
+    }
+
+    // ---- UI state helpers ----
+    function showLoading() {
+      document.getElementById("loading").classList.remove("hidden");
+      document.getElementById("content").classList.add("hidden");
+      document.getElementById("error").classList.add("hidden");
+    }
+
+    function showError() {
+      document.getElementById("loading").classList.add("hidden");
+      document.getElementById("content").classList.add("hidden");
+      document.getElementById("error").classList.remove("hidden");
+    }
+
+    function showContent(verseText, message, context) {
+      const verseEl = document.getElementById("verse-ref");
+      const { ref, quote } = parseVerse(verseText);
+
+      // Render reference as a small label above the italic quote
+      verseEl.innerHTML = `<span class="ref-label">${escapeHtml(ref)}</span>${escapeHtml(quote ? `"${quote}"` : ref)}`;
+
+      document.getElementById("message").textContent = message;
+      document.getElementById("datetime-label").textContent = formatDisplayLabel(context);
+
+      const content = document.getElementById("content");
+      document.getElementById("loading").classList.add("hidden");
+      document.getElementById("error").classList.add("hidden");
+      content.classList.remove("hidden");
+
+      // Re-trigger animation
+      content.classList.remove("animate");
+      void content.offsetWidth; // force reflow to restart animation
+      content.classList.add("animate");
+    }
+
+    // ---- Safe HTML escape ----
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ---- Fetch message from serverless function ----
+    async function fetchMessage() {
+      showLoading();
+      const context = getTimeContext();
+      setTimeTheme(context.timeOfDay);
+
+      try {
+        const res = await fetch("/api/getMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(context)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        const raw = data.raw || "";
+
+        const verseMatch   = raw.match(/VERSE:\s*(.+)/);
+        const messageMatch = raw.match(/MESSAGE:\s*([\s\S]+)/);
+
+        const verse   = verseMatch?.[1]?.trim()   ?? "";
+        const message = messageMatch?.[1]?.trim() ?? raw.trim();
+
+        if (!verse && !message) throw new Error("Empty response");
+
+        showContent(verse, message, context);
+      } catch (err) {
+        console.error("Failed to fetch message:", err);
+        showError();
+      }
+    }
+
+    // ---- Event listeners ----
+    document.getElementById("refresh-btn").addEventListener("click", fetchMessage);
+    document.getElementById("retry-btn").addEventListener("click", fetchMessage);
+
+    // ---- Init ----
+    fetchMessage();
+  </script>
+</body>
+</html>
