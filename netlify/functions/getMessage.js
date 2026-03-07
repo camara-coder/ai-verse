@@ -1,4 +1,5 @@
-const Anthropic = require("@anthropic-ai/sdk");
+const _anthropicModule = require("@anthropic-ai/sdk");
+const Anthropic = _anthropicModule.default ?? _anthropicModule;
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -18,7 +19,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: "Missing required fields: dayName, date, timeOfDay" };
   }
 
-  const client = new Anthropic(); // Reads ANTHROPIC_API_KEY from environment automatically
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   try {
     const message = await client.messages.create({

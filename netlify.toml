@@ -1,6 +1,12 @@
 [build]
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+
+[functions."getMessage"]
+  timeout = 30
+
 [[redirects]]
   from = "/api/getMessage"
   to = "/.netlify/functions/getMessage"
